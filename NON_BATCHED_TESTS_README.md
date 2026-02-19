@@ -66,7 +66,7 @@ pytest -v -m "cpu and non_batched and not quantized" tests/e2e/test_spyre_non_ba
 
 ### tests/e2e/test_spyre_non_batched.py
 
-Contains non-batched tests:
+Contains dedicated non-batched tests:
 
 1. **test_single_prompt_non_batched**: Single prompt with B=1
    - 1 prompt
@@ -77,6 +77,24 @@ Contains non-batched tests:
    - 4 prompts processed one-by-one
    - max_num_seqs=1
    - Each prompt processed independently with B=1
+
+### tests/e2e/test_spyre_basic.py
+
+Contains tests that can run in both batched and non-batched modes:
+
+3. **test_batch_handling** (with `@pytest.mark.non_batched`):
+   - 4 prompts with varying max_tokens [5, 20, 10, 5]
+   - When run with non_batched marker: max_num_seqs=1 (sequential)
+   - Tests both chunked prefill (cp) and prefix caching (pc) modes
+   - 2 test variants total
+
+4. **test_max_tokens** (with `@pytest.mark.non_batched`):
+   - Tests overflow prompt rejection
+   - When run with non_batched marker: max_num_seqs=1
+   - Tests both chunked prefill (cp) and prefix caching (pc) modes
+   - 2 test variants total
+
+**Total: 6 non-batched tests** run in CI/CD
 
 ## v2.0 Changes
 

@@ -67,6 +67,7 @@ def test_output(
     )
 
 
+@pytest.mark.non_batched
 def test_batch_handling(
     model: ModelInfo,
     backend: str,
@@ -77,11 +78,13 @@ def test_batch_handling(
     use_llm_cache,
 ):
     """Test that the spyre worker correctly handles
-    continuous batches of requests that
-    finish after different numbers of forward passes
+    requests with varying completion lengths.
 
-    Configuration for CB - parameters are combinatorial:
-        * max_num_seqs: 2
+    With non_batched marker: processes 4 prompts sequentially (max_num_seqs=1)
+    Without non_batched marker: processes in batches (max_num_seqs=4)
+
+    Configuration - parameters are combinatorial:
+        * max_num_seqs: 1 (non_batched) or 4 (default)
         * number of prompts: 4 (Chicken soup prompts)
         * max tokens: [5, 20, 10, 5]
     """
@@ -113,6 +116,7 @@ def test_batch_handling(
     )
 
 
+@pytest.mark.non_batched
 @pytest.mark.parametrize("backend", [pytest.param("eager", marks=pytest.mark.cpu, id="eager")])
 def test_max_tokens(
     model: ModelInfo,
@@ -123,8 +127,10 @@ def test_max_tokens(
     use_llm_cache,
     mode: str,
 ):
-    """Test that batches of requests that are longer than the `max_model_len` are correctly
-    rejected"""
+    """Test that requests longer than max_model_len are correctly rejected.
+
+    With non_batched marker: max_num_seqs=1 (sequential processing)
+    """
     max_tokens = 20
 
     overflow_prompt = " ".join(["a"] * max_model_len)
