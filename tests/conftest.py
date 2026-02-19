@@ -73,12 +73,21 @@ def pytest_generate_tests(metafunc):
         existing_markers,
     )
 
-    _add_param(
-        "max_num_seqs",
-        default_max_num_seqs,
-        metafunc,
-        existing_markers,
-    )
+    # Override max_num_seqs for non_batched tests
+    if "non_batched" in marker or metafunc.definition.get_closest_marker("non_batched"):
+        _add_param(
+            "max_num_seqs",
+            [1],  # Non-batched: force batch_size=1
+            metafunc,
+            existing_markers,
+        )
+    else:
+        _add_param(
+            "max_num_seqs",
+            default_max_num_seqs,
+            metafunc,
+            existing_markers,
+        )
 
     _add_param(
         "max_num_batched_tokens",
