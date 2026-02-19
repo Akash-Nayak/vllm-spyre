@@ -94,7 +94,23 @@ Contains tests that can run in both batched and non-batched modes:
    - Tests both chunked prefill (cp) and prefix caching (pc) modes
    - 2 test variants total
 
-**Total: 6 non-batched tests** run in CI/CD
+### tests/e2e/test_spyre_seed.py
+
+Contains seeded sampling tests with non-batched marker:
+
+5. **test_seed_deterministic** (with `@pytest.mark.non_batched`):
+   - Tests seeded random sampling produces identical results
+   - batch_size=[1, 3]: validates sequential processing of 1 or 3 prompts
+   - Tests both chunked prefill (cp) and prefix caching (pc) modes
+   - 4 test variants total (2 batch_sizes × 2 modes)
+
+6. **test_seed_variability** (with `@pytest.mark.non_batched`):
+   - Tests unseeded sampling produces different results
+   - batch_size=[1, 3]: validates sequential processing with randomness
+   - Tests both chunked prefill (cp) and prefix caching (pc) modes
+   - 4 test variants total (2 batch_sizes × 2 modes)
+
+**Total: 14 non-batched tests** run in CI/CD
 
 ## v2.0 Changes
 

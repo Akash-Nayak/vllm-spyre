@@ -51,6 +51,7 @@ def _generate_two_outputs(
     return results
 
 
+@pytest.mark.non_batched
 @pytest.mark.parametrize("temperature", [1.5])
 @pytest.mark.parametrize("seed", [42])
 @pytest.mark.parametrize("batch_size", [1, 3])
@@ -74,6 +75,10 @@ def test_seed_deterministic(
     With seeding, the entire batch should be reproducible across multiple requests,
     even though individual items within a batch may differ from each other due
     to numerical variance when batching.
+
+    With non_batched marker: max_num_seqs=1 forces sequential processing.
+    - batch_size=1: processes 1 prompt
+    - batch_size=3: processes 3 prompts sequentially (not in parallel)
     """
     results = _generate_two_outputs(**locals())
 
@@ -99,6 +104,7 @@ def test_seed_deterministic(
             assert math.isclose(logprob_1, logprob_2, rel_tol=0.1)
 
 
+@pytest.mark.non_batched
 @pytest.mark.parametrize("temperature", [1.5])
 @pytest.mark.parametrize("batch_size", [1, 3])
 def test_seed_variability(
@@ -119,6 +125,10 @@ def test_seed_variability(
     Tests both single requests (batch_size=1) and batched requests (batch_size>1).
     Without seeding, results should vary within a batch and across multiple
     requests.
+
+    With non_batched marker: max_num_seqs=1 forces sequential processing.
+    - batch_size=1: processes 1 prompt
+    - batch_size=3: processes 3 prompts sequentially (not in parallel)
     """
     results = _generate_two_outputs(**locals())
 
