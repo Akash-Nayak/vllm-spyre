@@ -37,12 +37,9 @@ def test_single_prompt_non_batched(
     )
 
     backend = "eager"
-    prompt_len = 64
     max_new_tokens = 20
-    batch_size = 1  # KEY: Non-batched
 
-    # Warmup shape with batch_size=1
-    warmup_shapes = [(prompt_len, max_new_tokens, batch_size)]
+    # Single prompt for non-batched test
     prompts = get_chicken_soup_prompts(1)
 
     vllm_sampling_params = SamplingParams(
@@ -61,8 +58,8 @@ def test_single_prompt_non_batched(
         monkeypatch=monkeypatch,
         max_model_len=512,
         max_new_tokens=max_new_tokens,
-        warmup_shapes=warmup_shapes,
-        use_cb=False,  # Static batching mode
+        max_num_seqs=1,  # Non-batched: max 1 sequence at a time
+        max_num_batched_tokens=128,
     )
 
 
@@ -84,13 +81,9 @@ def test_multiple_prompts_non_batched_sequential(
     )
 
     backend = "eager"
-    prompt_len = 64
     max_new_tokens = 20
-    batch_size = 1
 
-    warmup_shapes = [(prompt_len, max_new_tokens, batch_size)]
-
-    # Multiple prompts - will be processed sequentially
+    # Multiple prompts - will be processed sequentially with max_num_seqs=1
     prompts = get_chicken_soup_prompts(4)
 
     vllm_sampling_params = SamplingParams(
@@ -109,6 +102,6 @@ def test_multiple_prompts_non_batched_sequential(
         monkeypatch=monkeypatch,
         max_model_len=512,
         max_new_tokens=max_new_tokens,
-        warmup_shapes=warmup_shapes,
-        use_cb=False,
+        max_num_seqs=1,  # Non-batched: max 1 sequence at a time
+        max_num_batched_tokens=128,
     )
