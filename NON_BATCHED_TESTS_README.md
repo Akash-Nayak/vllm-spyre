@@ -22,12 +22,14 @@ The GitHub Actions workflow includes a dedicated non-batched test suite:
 
 ```yaml
 # .github/workflows/test.yml (lines 64-66)
+
 - name: "non-batched"
   markers: "cpu and non_batched and not quantized"
   flags: "--timeout=300"
 ```
 
 Environment variables set in CI:
+
 - `MASTER_ADDR: localhost`
 - `MASTER_PORT: 12355`
 - `VLLM_TARGET_DEVICE: "empty"`
@@ -38,6 +40,7 @@ Environment variables set in CI:
 ### CI/CD (GitHub Actions)
 
 Tests run automatically on push/PR:
+
 ```bash
 pytest tests -v -m "cpu and non_batched and not quantized"
 ```
@@ -51,6 +54,7 @@ pytest -v -m "cpu and non_batched and not quantized" tests/e2e/test_spyre_non_ba
 ### Local Testing on macOS
 
 **Requirements:**
+
 - vLLM 0.15.1 (install from git: `pip install 'git+https://github.com/vllm-project/vllm@v0.15.1'`)
 - Set environment variables:
 
@@ -64,31 +68,19 @@ pytest -v -m "cpu and non_batched and not quantized" tests/e2e/test_spyre_non_ba
 
 ## Test Files
 
-### tests/e2e/test_spyre_non_batched.py
-
-Contains dedicated non-batched tests:
-
-1. **test_single_prompt_non_batched**: Single prompt with B=1
-   - 1 prompt
-   - max_num_seqs=1
-   - Validates against HuggingFace output
-
-2. **test_multiple_prompts_non_batched_sequential**: Multiple prompts processed sequentially
-   - 4 prompts processed one-by-one
-   - max_num_seqs=1
-   - Each prompt processed independently with B=1
+Non-batched tests use existing test functions marked with `@pytest.mark.non_batched`. The marker automatically sets `max_num_seqs=1` via conftest.py parametrization.
 
 ### tests/e2e/test_spyre_basic.py
 
-Contains tests that can run in both batched and non-batched modes:
+1. **test_batch_handling** (with `@pytest.mark.non_batched`):
 
-3. **test_batch_handling** (with `@pytest.mark.non_batched`):
    - 4 prompts with varying max_tokens [5, 20, 10, 5]
    - When run with non_batched marker: max_num_seqs=1 (sequential)
    - Tests both chunked prefill (cp) and prefix caching (pc) modes
    - 2 test variants total
 
-4. **test_max_tokens** (with `@pytest.mark.non_batched`):
+2. **test_max_tokens** (with `@pytest.mark.non_batched`):
+
    - Tests overflow prompt rejection
    - When run with non_batched marker: max_num_seqs=1
    - Tests both chunked prefill (cp) and prefix caching (pc) modes
@@ -96,25 +88,26 @@ Contains tests that can run in both batched and non-batched modes:
 
 ### tests/e2e/test_spyre_seed.py
 
-Contains seeded sampling tests with non-batched marker:
+1. **test_seed_deterministic** (with `@pytest.mark.non_batched`):
 
-5. **test_seed_deterministic** (with `@pytest.mark.non_batched`):
    - Tests seeded random sampling produces identical results
    - batch_size=[1, 3]: validates sequential processing of 1 or 3 prompts
    - Tests both chunked prefill (cp) and prefix caching (pc) modes
    - 4 test variants total (2 batch_sizes × 2 modes)
 
-6. **test_seed_variability** (with `@pytest.mark.non_batched`):
+2. **test_seed_variability** (with `@pytest.mark.non_batched`):
+
    - Tests unseeded sampling produces different results
    - batch_size=[1, 3]: validates sequential processing with randomness
    - Tests both chunked prefill (cp) and prefix caching (pc) modes
    - 4 test variants total (2 batch_sizes × 2 modes)
 
-**Total: 14 non-batched tests** run in CI/CD
+**Total: 12 non-batched tests** run in CI/CD (all using existing test functions with `@pytest.mark.non_batched`)
 
 ## v2.0 Changes
 
 vLLM-Spyre v2.0 removed Continuous Batching (CB) and Static Batching (SB) modes in favor of vLLM V1 API with chunked prefill. Non-batched tests now use:
+
 - vLLM V1 engine exclusively
 - `max_num_seqs=1` to enforce non-batched execution
 - Chunked prefill with `max_num_batched_tokens=128`
@@ -126,6 +119,7 @@ vLLM-Spyre v2.0 removed Continuous Batching (CB) and Static Batching (SB) modes 
 **Cause:** vLLM V1 engine requires `MASTER_ADDR` and `MASTER_PORT` environment variables.
 
 **Solution:**
+
 ```bash
 export MASTER_ADDR=localhost
 export MASTER_PORT=12355
@@ -136,6 +130,7 @@ export MASTER_PORT=12355
 **Cause:** vLLM version mismatch (e.g., using 0.14.1 instead of 0.15.1).
 
 **Solution:**
+
 ```bash
 pip install 'git+https://github.com/vllm-project/vllm@v0.15.1'
 ```
@@ -145,6 +140,7 @@ pip install 'git+https://github.com/vllm-project/vllm@v0.15.1'
 ### How max_num_seqs=1 Works
 
 `max_num_seqs` controls the scheduler's batch size in vLLM:
+
 - `max_num_seqs=4` (default): Process up to 4 requests in parallel
 - `max_num_seqs=1` (non-batched): Process 1 request at a time
 
