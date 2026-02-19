@@ -145,6 +145,7 @@ pip install 'git+https://github.com/vllm-project/vllm@v0.15.1'
 - `max_num_seqs=1` (non-batched): Process 1 request at a time
 
 The value is passed to the vLLM `LLM()` constructor:
+
 ```python
 LLM(
     model=model_name,
